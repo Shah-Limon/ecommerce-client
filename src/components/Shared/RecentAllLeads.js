@@ -1,41 +1,29 @@
 import React, { useEffect, useState } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
-import auth from '../firebase.init';
 import { Link } from 'react-router-dom';
+import auth from '../../firebase.init';
 
-const MyAccount = () => {
+const RecentAllLeads = () => {
+
+    const [leads, setLeads] = useState([]);
     const [profile, setProfile] = useState([]);
     const [user] = useAuthState(auth);
-    const [leads, setLeads] = useState([]);
-    
   
     useEffect(() => {
       fetch(`http://localhost:5000/leads`)
         .then((res) => res.json())
         .then((info) => setLeads(info));
     }, []);
-   
-  useEffect(() => {
-    fetch(`http://localhost:5000/profile?customerEmail=${user?.email}`)
-      .then((res) => res.json())
-      .then((info) => setProfile(info));
-  }, []);
+    useEffect(() => {
+        fetch(`http://localhost:5000/profile?customerEmail=${user?.email}`)
+          .then((res) => res.json())
+          .then((info) => setProfile(info));
+      }, []);
 
-
+    
     return (
-        <div>
-            <div className='flex justify-center'>
-            <Link>My Available Credit: {profile.map(pro=> pro.customerEmail === user?.email &&
-            <>{pro.credit}</>
-                )}</Link>
-            </div>
-            {
-                profile.filter(pro=> pro.customerEmail === user?.email).length === 0 &&
-                <Link className='btn' to='/create-profile'>Please Complete Your Profile Now</Link>
-            }
-            {
-                profile.filter(pro=> pro.customerEmail === user?.email).length === 1 &&
-                <div className="overflow-x-auto w-full">
+        <div className='container mx-auto'>
+            <div className="overflow-x-auto w-full">
   <table className="table w-full">
     {/* head */}
     <thead>
@@ -46,11 +34,12 @@ const MyAccount = () => {
         <th>Company</th>
         <th>Website</th>
         <th>Credit</th>
+        <th>Action</th>
       </tr>
     </thead>
     <tbody>
       {
-        leads.map(lead=> lead.leadStatus === 'Taken' && lead.leadTakenBy === user?.email &&
+        leads.map(lead=> lead.leadStatus === 'notTaken' &&
         <tr>
         <td>
           <div className="flex items-center space-x-3">
@@ -78,7 +67,26 @@ const MyAccount = () => {
         <th>
           {lead.credit}
         </th>
-        
+        <th>
+          {
+            user ?
+            <>
+            {
+                profile.map(pro=> pro.customerEmail === user?.email && parseFloat(pro.credit) > parseFloat(lead.credit) && 
+                    <Link to={`/take-lead/${lead._id}`} className='btn btn-sm btn-primary'>Take</Link>
+                    )
+            }
+            {
+                profile.map(pro=> pro.customerEmail === user?.email && parseFloat(pro.credit) < parseFloat(lead.credit) && 
+                    <Link to='/credit-packages' className='btn btn-sm btn-primary'>Buy More Credit</Link>
+                    )
+            }
+            </>
+            
+            :
+            <Link to='/login' className='btn btn-sm btn-primary'>Join Now</Link>
+          }
+        </th>
       </tr>
         )
       }
@@ -86,9 +94,9 @@ const MyAccount = () => {
     
   </table>
 </div>
-            }
+            
         </div>
     );
 };
 
-export default MyAccount;
+export default RecentAllLeads;

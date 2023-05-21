@@ -5,7 +5,14 @@ import { useNavigate } from "react-router-dom";
 const AddProduct = () => {
   const navigate = useNavigate();
   const [categories, setCategories] = useState([]);
+  const [variations, setVariations] = useState([]);
 
+  useEffect(() => {
+    fetch(`http://localhost:5000/products-variation`)
+      .then((res) => res.json())
+      .then((info) => setVariations(info));
+  }, []);
+  
   useEffect(() => {
     fetch(`http://localhost:5000/categories`)
       .then((res) => res.json())
@@ -56,8 +63,8 @@ const AddProduct = () => {
                 )
           }
           
-          
         </select>
+
         <br></br>
         <input
           type="text"
@@ -70,6 +77,18 @@ const AddProduct = () => {
           name="ProductDetails"
           placeholder="Product Details"
         ></input>{" "}
+        <br></br>
+        <select name="Category">
+          <option disabled selected>
+            Select a Variation
+          </option>
+          {
+            variations.map(variation =>
+                <option>{variation.variationName}</option>
+                )
+          }
+          
+        </select>
         <br></br>
         <input
           type="text"
